@@ -1,23 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-typedef struct node {
-    struct node *next;
-    int data;
-} node;
-
-node *tail(node *head) {
-    if (head == NULL) {return NULL;};
-    while (head->next != NULL) { head = head->next; };
-    return head;
-}
-
-node *new_node(int data) {
-    node *new = (node *) malloc(sizeof(node));
-    new->data = data;
-    new->next = NULL;
-    return new;
-}
+#include "linked_lib.h"
 
 node *add_node_to_end(node *head, int data) {
     if (head == NULL) { return new_node(data); };
@@ -68,17 +51,6 @@ node *add_node_sorted(node *head, int data) {
     new->next = current;
     prev->next = new;
     return head;
-}
-
-void print_node(node *n) {
-    printf("node with value: %d <%p>\n", n->data, n);
-}
-
-void print_list(node *head) {
-    while (head != NULL) {
-        print_node(head);
-        head = head->next;
-    }
 }
 
 void recursive_print_list(node *head) {
