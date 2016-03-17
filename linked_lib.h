@@ -3,8 +3,12 @@
 
 typedef struct node {
     struct node *next;
+    struct node *prev;
     int data;
 } node;
+
+/** Add a node sorted to a sorted double linked list. */
+void double_add_node_sorted(node **, node **, int);
 
 /** Finds the last, tail node of the list. */
 node *tail(node *);
