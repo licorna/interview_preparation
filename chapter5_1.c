@@ -24,7 +24,6 @@ Node *new_node(int value) {
 
 void recursive_add_to_tree(Node **root, int value) {
     /* Recursively adds to tree. */
-    printf("Using recursive_add_to_tree: %d\n", value);
     if (!*root) {
         /* This is not symetric as it will only affect the root node
            of the "main" tree, not the subtrees */
@@ -47,9 +46,7 @@ void recursive_add_to_tree(Node **root, int value) {
 
 void add_to_tree(Node **root, int value) {
     /* Adds a new node to root tree. */
-    printf("Using add_to_tree: %d\n", value);
     if (!(*root)) {
-        printf("primer nodo\n");
         *root = new_node(value);
         return;
     }
@@ -57,15 +54,12 @@ void add_to_tree(Node **root, int value) {
     Node *current = *root;
     while (current) {
         if (current->value == value) {
-            printf("es el mismo valor!\n");
             return;
         }
         last = current;
         if (current->value < value) {
-            printf("es menor que!\n");
             current = current->left;
         } else {
-            printf("es mayor que!\n");
             current = current->right;
         }
     }
@@ -75,6 +69,19 @@ void add_to_tree(Node **root, int value) {
     } else {
         last->right = new;
     }
+}
+
+Node *find_node(Node *tree, int value) {
+    if (tree == NULL) {
+        return NULL;
+    }
+    if (tree->value < value) {
+        return find_node(tree->left, value);
+    } else if (tree->value > value) {
+        return find_node(tree->right, value);
+    }
+    /* if not > nor < then current node is what we are looking for */
+    return tree;
 }
 
 void print_in_order(Node *root) {
@@ -88,10 +95,23 @@ int main(int argc, char *argv[]) {
     Node *tree = NULL;
     int collection[] = {1, 2, 3, 10, 20, 14, 7, 8, 0};
     typedef unsigned long ulong;
-    for (ulong i = 0;
-         i < sizeof(collection)/sizeof(collection[0]);
-         i++) {
-        ((argc > 1 && !strcmp(argv[1], "-r")) ? recursive_add_to_tree : add_to_tree)(&tree, collection[i]);
+    for (ulong i = 0; i < sizeof(collection)/sizeof(collection[0]); i++) {
+        /* The next code is more concise but will scare away interviewers */
+        /*
+        ((argc > 1 && !strcmp(argv[1], "-r"))
+        ? recursive_add_to_tree : add_to_tree)(&tree, collection[i]); // */
+        if (argc > 1 && !strcmp(argv[1], "-r")) {
+            recursive_add_to_tree(&tree, collection[i]);
+        } else {
+            add_to_tree(&tree, collection[i]);
+        }
     }
-    print_in_order(tree);
+    print_in_order(tree); printf("\n");
+
+    Node *found = find_node(tree, 15);
+    if (found) {
+        printf("Node has been found! %d\n", found->value);
+    } else {
+        printf("Node not found\n");
+    }
 }
