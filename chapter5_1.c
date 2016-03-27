@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 typedef struct Node {
     struct Node *left;
@@ -86,18 +87,42 @@ Node *find_node(Node *tree, int value) {
     return tree;
 }
 
+Node *lowest_common_ancestor(Node *tree, int v1, int v2) {
+    if (find_node(tree->left, v1) && find_node(tree->left, v2)) {
+        return lowest_common_ancestor(tree->left, v1, v2);
+    } else if (find_node(tree->right, v1) && find_node(tree->right, v2)) {
+        return lowest_common_ancestor(tree->right, v1, v2);
+    }
+    return tree;
+}
 
+int max(int a, int b) {
+    return (a > b) ? a : b;
+}
 
-void print_in_order(Node *root) {
+int height(Node *tree) {
+    if (!tree) return 0;
+    return 1 + max(height(tree->left), height(tree->right));
+}
+
+void print_in_order(Node *root, int show_pointer) {
     if (!root) return;
-    print_in_order(root->left);
+    print_in_order(root->left, show_pointer);
     printf("%d ", root->value);
-    print_in_order(root->right);
+    if (show_pointer) { printf("%p\n", root); }
+    print_in_order(root->right, show_pointer);
+}
+
+void print_post_order(Node *root) {
+    if (!root) return;
+    print_post_order(root->left);
+    print_post_order(root->right);
+    printf("%d ", root->value);
 }
 
 int main(int argc, char *argv[]) {
     Node *tree = NULL;
-    int collection[] = {1, 2, 3, 10, 20, 14, 7, 8, 0};
+    int collection[] = { 100, 50, 25, 75, 150, 125, 110, 175};
     typedef unsigned long ulong;
     for (ulong i = 0; i < sizeof(collection)/sizeof(collection[0]); i++) {
         /* The next code is more concise but will scare away interviewers */
@@ -110,12 +135,13 @@ int main(int argc, char *argv[]) {
             add_to_tree(&tree, collection[i]);
         }
     }
-    print_in_order(tree); printf("\n");
+    printf("Post Order: ");
+    print_post_order(tree); printf ("\n");
 
-    Node *found = find_node(tree, 21);
-    if (found) {
-        printf("Node has been found! %d\n", found->value);
-    } else {
-        printf("Node not found\n");
-    }
+    printf("In Order: ");
+    print_in_order(tree, 0); printf ("\n");
+
+    printf("Lowest Common Ancestor: ");
+    Node *lca = lowest_common_ancestor(tree, 110, 20);
+    printf("%d\n", lca->value);
 }
