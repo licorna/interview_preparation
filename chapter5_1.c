@@ -14,6 +14,8 @@ Node *new_node(int value) {
     /* Allocates a new node. */
     Node *root = malloc(sizeof(Node));
     if (root) {
+        /* Left contains values lower than current,
+           right contains values greater than current */
         root->left = NULL;
         root->right = NULL;
         root->value = value;
@@ -30,16 +32,16 @@ void recursive_add_to_tree(Node **root, int value) {
         *root = new_node(value);
     }
     if ((*root)->value < value) {
-        if ((*root)->left == NULL) {
-            (*root)->left = new_node(value);
-        } else {
-            recursive_add_to_tree(&(*root)->left, value);
-        }
-    } else if ((*root)->value > value) {
         if ((*root)->right == NULL) {
             (*root)->right = new_node(value);
         } else {
             recursive_add_to_tree(&(*root)->right, value);
+        }
+    } else if ((*root)->value > value) {
+        if ((*root)->left == NULL) {
+            (*root)->left = new_node(value);
+        } else {
+            recursive_add_to_tree(&(*root)->left, value);
         }
     }
 }
@@ -58,16 +60,16 @@ void add_to_tree(Node **root, int value) {
         }
         last = current;
         if (current->value < value) {
-            current = current->left;
-        } else {
             current = current->right;
+        } else {
+            current = current->left;
         }
     }
     Node *new = new_node(value);
     if (last->value < value) {
-        last->left = new;
-    } else {
         last->right = new;
+    } else {
+        last->left = new;
     }
 }
 
@@ -76,13 +78,15 @@ Node *find_node(Node *tree, int value) {
         return NULL;
     }
     if (tree->value < value) {
-        return find_node(tree->left, value);
-    } else if (tree->value > value) {
         return find_node(tree->right, value);
+    } else if (tree->value > value) {
+        return find_node(tree->left, value);
     }
     /* if not > nor < then current node is what we are looking for */
     return tree;
 }
+
+
 
 void print_in_order(Node *root) {
     if (!root) return;
@@ -108,7 +112,7 @@ int main(int argc, char *argv[]) {
     }
     print_in_order(tree); printf("\n");
 
-    Node *found = find_node(tree, 15);
+    Node *found = find_node(tree, 21);
     if (found) {
         printf("Node has been found! %d\n", found->value);
     } else {
