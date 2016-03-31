@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "prlib.h"
 
 /** Finds the last, tail node of the list. */
@@ -67,9 +68,9 @@ void bt_dfs(BTreeNode *head) {
 void bt_to_array2(BTreeNode *head, int *arr) {
     static int idx = 0;
     if (!head) { return; }
-    bt_to_array2(head->left, arr);
     *(arr + idx++) = head->value;
     bt_to_array2(head->right, arr);
+    bt_to_array2(head->left, arr);
 }
 
 int *bt_to_array(BTreeNode *head, int *size) {
@@ -132,4 +133,28 @@ BTreeNode *bt_new_node(int value) {
         return new;
     }
     return NULL;
+}
+
+void swap(int *arr, int i, int j) {
+    int tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+}
+
+void quicksort(int *arr, int st, int end) {
+    if (st == end) return;
+
+    int i, sep = st;
+    for (i = st + 1; i < end; i++) {
+        if (arr[i] < arr[st]) swap(arr, ++sep, i);
+    }
+
+    swap(arr, st, sep);
+    quicksort(arr, st, sep);
+    quicksort(arr, sep + 1, end);
+}
+
+void arr_print(int *arr, int size) {
+    for (int i = 0; i < size; i++) {
+        printf("%d ", *(arr + i));
+    }
+    printf("\n");
 }

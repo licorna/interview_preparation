@@ -31,3 +31,9 @@ void bt_print_list_in_order(BTreeNode *);
 BTreeNode *bt_new_node(int);
 
 void ll_print_list(LinkedListNode *);
+
+void arr_print(int *, int);
+void quicksort(int *, int, int);
+
+
+long string_hash32(char *, int);

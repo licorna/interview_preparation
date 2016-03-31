@@ -13,10 +13,17 @@ int main() {
     // bt_print_list_in_order(root);
 
     int size = 0;
+
+    // now we will put the tree into the array
     int *array = bt_to_array(root, &size);
 
+    // print its contents to check everything is working
     for (int i = 0; i < size; i++) {
         printf("%d ", *(array + i));
     }
     printf("\n");
+
+    quicksort(array, 0, size);
+
+    arr_print(array, size);
 }
