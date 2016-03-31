@@ -35,21 +35,14 @@ Dict *dict() {
 DictNode *dict_get(Dict *_dict, char *key) {
     unsigned long hash = string_hash32(key, _dict->size);
     for (int i = hash; i < _dict->size && _dict->table[i].key != NULL; i++) {
-        printf("checking array for key %s ", _dict->table[i].key);
-
-        if (!strcmp(_dict->table[i].key, key))
-            printf("found!\n");
+        if (!strcmp(_dict->table[i].key, key)) {
             return &_dict->table[i];
+        }
     }
-    printf("nopes\n");
     return NULL;
 }
 
 int dict_put_absolute(Dict *_dict, char *key, int value, long hash, long at) {
-    if (hash != at) {
-        printf("hash(%lu) and at(%lu) differ.\n", hash, at);
-        printf("key: %s\n", key);
-    }
     _dict->table[at].hash = hash;
     _dict->table[at].value = value;
     _dict->table[at].key = key;
@@ -57,29 +50,23 @@ int dict_put_absolute(Dict *_dict, char *key, int value, long hash, long at) {
 }
 
 int dict_put(Dict *_dict, char *key, int value) {
-    DictNode *collision;
-    printf("dict_put(%s, %d)\n", key, value);
-    if ((collision = dict_get(_dict, key)) != NULL &&
-        strcmp(collision->key, key)) {
-        printf("key exists;\n");
-        // key exists! act depending on dict strategy.
-        if (_dict->strategy == LINEAR_PROBING) {
-            for (long i = collision->hash + 1; i < _dict->size; i++) {
-                // printf("checking free space at %lu\n", i);
-                if (_dict->table[i].key == NULL) {
-                    /* printf("LP: attempted to save %s in %lu, ended up in %lu\n", */
-                    /*        key, collision->hash, i); */
-                    printf ("puting absolute %lu at %lu\n", collision->hash, i);
-                    dict_put_absolute(_dict, key, value, collision->hash, i);
-                    return 1;
-                }
-            }
-            return 0; // if we reach this place, the table is exhausted
-        }
+    DictNode *coll;
+    if ((coll = dict_get(_dict, key)) != NULL) {
+        // key exists, just update value
+        coll->value = value;
+        return 1;
     }
     unsigned long hash = string_hash32(key, _dict->size);
-    dict_put_absolute(_dict, key, value, hash, hash);
-    return 1;
+    // key does not exist, find a place
+    if (_dict->strategy == LINEAR_PROBING) {
+        for (long i = hash; i < _dict->size; i++) {
+            if (_dict->table[i].key == NULL) { // found a place, insert here
+                dict_put_absolute(_dict, key, value, hash, i);
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
 
 void print_dict(Dict *dict) {
@@ -105,14 +92,13 @@ char *node_str(DictNode *node) {
 
 
 int main() {
-    Dict *hash = dict(); // initializes DICT_SIZE hash
+    Dict *hash = dict();
     char *keys[] = {"one", "two", "three", "four", "five", "six", "seven",
                     "eight", "nine", "ten", "eleven", "twelve", "thirteen",
                     "fourteen", "fiveteen", "sixteen"};
 
     for (size_t i = 0; i < sizeof(keys)/sizeof(keys[0]); i++) {
         dict_put(hash, keys[i], i+1);
-        // printf("Puting %s in dict, got %d inserted\n", keys[i], res);
     }
 
     for (size_t i = 0; i < sizeof(keys)/sizeof(keys[0]); i++) {
