@@ -12,8 +12,8 @@ typedef struct DictNode {
     int value; // int value
 } DictNode;
 
-int DICT_SIZE = 8;
 int PERTURB_SHIFT = 5;
+float OCCUPANCY_RATIO = 0.66f;
 typedef enum {LINEAR_PROBING, OPEN_ADDRESSING, SEPARATE_CHAINING} Strategy;
 
 typedef struct Dict {
@@ -22,16 +22,18 @@ typedef struct Dict {
     Strategy strategy;
 } Dict;
 
-Dict *dict() {
+Dict *dict(int size) {
     Dict *new = (Dict *) malloc(sizeof(Dict));
-    new->table = (DictNode *) malloc(sizeof(DictNode) * DICT_SIZE);
-    new->size = DICT_SIZE;
-    for (int i = 0; i < DICT_SIZE; i++) {
+    new->table = (DictNode *) malloc(sizeof(DictNode) * size);
+    new->size = size;
+    for (int i = 0; i < size; i++) {
         new->table[i].key = NULL;
     }
     new->strategy = OPEN_ADDRESSING;
     return new;
 }
+
+int dict_resize(Dict *);
 
 DictNode *dict_get(Dict *_dict, char *key) {
     unsigned long hash = string_hash32(key, _dict->size);
@@ -106,11 +108,58 @@ int dict_put(Dict *_dict, char *key, int value) {
             i = i % _dict->size;
         }
         dict_put_absolute(_dict, key, value, hash, i);
+        return 1;
 
     }
-    // check_dict_size(_dict); // resize if needed
+    dict_resize(_dict); // resize if needed
     return 0;
 }
+
+int dict_count_keys(Dict *_dict) {
+    /* Counts amount of used keys from Dict. */
+    int count = 0;
+    for (int i = 0; i < _dict->size; i++) {
+        if (_dict->table[i].key != NULL) {
+            count++;
+        }
+    }
+    return count;
+}
+
+char **dict_keys(Dict *_dict) {
+    int count = dict_count_keys(_dict);
+    char **keys = (char **) malloc(sizeof(char *) * count);
+    for (int i = 0, j = 0 ; i < _dict->size; i++) {
+        if (_dict->table[i].key != NULL) {
+            asprintf((keys + j++), "%s", _dict->table[i].key);
+        }
+    }
+
+    return keys;
+}
+
+int dict_resize(Dict *_dict) {
+    // needs some improvement, as the dictionary is not being resized
+    // or something. the algorithms work until an unescapable loop
+    // triggers, as the dict is still the same size, the dict_put
+    // method is not able to find a new place where to put the new
+    // value... and it keeps looping thru a endless cycle.
+    int keys_count = dict_count_keys(_dict);
+    if ((float)keys_count / (float)_dict->size > 2.0/3.0) {
+        printf("resizing is happening\n");
+        Dict *new_dict = dict(_dict->size * 2);
+        char **keys = dict_keys(_dict);
+        for (int i = 0; i < keys_count; i++) {
+            int value = dict_get(_dict, keys[i])->value;
+            dict_put(new_dict, keys[i], value);
+        }
+        free(_dict->table);
+        _dict->table = new_dict->table;
+        free(keys);
+    }
+    return _dict->size;
+}
+
 
 void print_dict(Dict *dict) {
     if (!dict) { printf("Dict is empty\n"); }
@@ -135,23 +184,24 @@ char *node_str(DictNode *node) {
 
 
 int main() {
-    Dict *hash = dict();
-    char *keys[] = {"one", "two", "three"};/*, "four", "five", "six", "seven",
-                    "eight", "nine", "ten", "eleven", "twelve", "thirteen",
+    Dict *hash = dict(8);
+    char *keys[] = {"one", "two", "three", "four", "five", "six" , "seven",
+                    "eight", "nine"};/*, "ten", "eleven", "twelve", "thirteen",
                     "fourteen", "fiveteen", "sixteen"}; //*/
 
     for (size_t i = 0; i < sizeof(keys)/sizeof(keys[0]); i++) {
         dict_put(hash, keys[i], i+1);
     }
 
-    for (size_t i = 0; i < sizeof(keys)/sizeof(keys[0]); i++) {
-        DictNode *tmp = dict_get(hash, keys[i]);
-        if (tmp) {
-            printf("%s\n", node_str(tmp));
-        } else {
-            printf("Key not found\n");
-        }
+    int count = dict_count_keys(hash);
+    printf("dict size: %d\n", count);
+
+    char **_keys = dict_keys(hash);
+    for (int i = 0; i < count; i++) {
+        printf("key: %s\n", _keys[i]);
     }
+
+    free(_keys);
 
 //    print_dict(hash);
 }
